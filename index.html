@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Compass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1520;
+    --bg-panel:#161E2B;
+    --bg-panel-hover:#1B2434;
+    --ink:#EAE3D2;
+    --ink-dim:#9BA6B4;
+    --ink-faint:#5C6B7D;
+    --accent:#C9A227;
+    --accent-soft:rgba(201,162,39,0.14);
+    --grid:#28344A;
+    --grid-strong:#3A4A66;
+    --danger:#D8664A;
+    --quad-tl:rgba(120,150,220,0.06);
+    --quad-tr:rgba(201,162,39,0.06);
+    --quad-bl:rgba(120,200,170,0.05);
+    --quad-br:rgba(216,102,74,0.07);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:48px 28px 80px;
+  }
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:24px;
+    border-bottom:1px solid var(--grid);
+    padding-bottom:24px;
+    margin-bottom:36px;
+    flex-wrap:wrap;
+  }
+  .titleblock h1{
+    font-family:'Fraunces',serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:42px;
+    letter-spacing:-0.01em;
+    margin:0 0 6px;
+  }
+  .titleblock p{
+    margin:0;
+    color:var(--ink-dim);
+    font-size:14.5px;
+    max-width:480px;
+    line-height:1.5;
+  }
+  .bearing{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-faint);
+    text-align:right;
+    line-height:1.6;
+    letter-spacing:0.04em;
+  }
+  main{
+    display:grid;
+    grid-template-columns:1fr 380px;
+    gap:32px;
+    align-items:start;
+  }
+  @media (max-width:900px){
+    main{grid-template-columns:1fr;}
+    .titleblock h1{font-size:32px;}
+  }
+
+  /* --- chart panel --- */
+  .chart-panel{
+    background:var(--bg-panel);
+    border:1px solid var(--grid);
+    border-radius:4px;
+    padding:20px;
+    position:relative;
+  }
+  .chart-panel svg{width:100%;height:auto;display:block;}
+  .axis-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    fill:var(--ink-faint);
+    text-transform:uppercase;
+  }
+  .empty-note{
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    color:var(--ink-faint);
+    font-size:13px;
+    text-align:center;
+    pointer-events:none;
+    font-family:'JetBrains Mono',monospace;
+    max-width:220px;
+  }
+
+  /* --- control panel --- */
+  .panel{
+    background:var(--bg-panel);
+    border:1px solid var(--grid);
+    border-radius:4px;
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .panel h2{
+    font-family:'Fraunces',serif;
+    font-size:18px;
+    font-weight:600;
+    margin:0;
+  }
+  .add-row{display:flex;gap:8px;}
+  input[type=text]{
+    flex:1;
+    background:var(--bg);
+    border:1px solid var(--grid-strong);
+    color:var(--ink);
+    padding:10px 12px;
+    border-radius:3px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    outline:none;
+  }
+  input[type=text]:focus{border-color:var(--accent);}
+  input[type=text]::placeholder{color:var(--ink-faint);}
+  button.primary{
+    background:var(--accent);
+    color:#211A05;
+    border:none;
+    padding:10px 16px;
+    border-radius:3px;
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+    white-space:nowrap;
+    font-family:'Inter',sans-serif;
+  }
+  button.primary:disabled{opacity:0.55;cursor:default;}
+  button.primary:hover:not(:disabled){filter:brightness(1.08);}
+  .hint{font-size:12px;color:var(--ink-faint);line-height:1.5;margin:0;}
+  .error{
+    font-size:12.5px;
+    color:var(--danger);
+    background:rgba(216,102,74,0.1);
+    border:1px solid rgba(216,102,74,0.3);
+    padding:8px 10px;
+    border-radius:3px;
+    display:none;
+  }
+
+  .entries{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    max-height:420px;
+    overflow-y:auto;
+    margin-top:4px;
+  }
+  .entry{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:10px 4px;
+    border-bottom:1px solid var(--grid);
+  }
+  .entry:last-child{border-bottom:none;}
+  .dot{
+    width:11px;height:11px;border-radius:50%;
+    flex-shrink:0;margin-top:4px;
+  }
+  .entry-body{flex:1;min-width:0;}
+  .entry-name{font-size:13.5px;font-weight:600;color:var(--ink);}
+  .entry-meta{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    color:var(--ink-faint);
+    margin-top:2px;
+  }
+  .entry-blurb{
+    font-size:12px;
+    color:var(--ink-dim);
+    margin-top:4px;
+    line-height:1.4;
+  }
+  .entry-remove{
+    background:none;border:none;color:var(--ink-faint);
+    cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;
+    font-family:'Inter',sans-serif;
+  }
+  .entry-remove:hover{color:var(--danger);}
+  .empty-list{color:var(--ink-faint);font-size:13px;padding:8px 0;}
+  .clear-all{
+    background:none;border:1px solid var(--grid-strong);color:var(--ink-dim);
+    font-size:12px;padding:7px 10px;border-radius:3px;cursor:pointer;
+    font-family:'Inter',sans-serif;align-self:flex-start;
+  }
+  .clear-all:hover{border-color:var(--danger);color:var(--danger);}
+
+  .spinner{
+    width:13px;height:13px;border-radius:50%;
+    border:2px solid rgba(33,26,5,0.3);
+    border-top-color:#211A05;
+    display:inline-block;
+    animation:spin 0.7s linear infinite;
+    vertical-align:middle;
+    margin-right:6px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="titleblock">
+      <h1>The Compass</h1>
+      <p>Type in any politician or political figure. Each placement is estimated by Claude on economic policy (left–right) and governing style (authoritarian–libertarian), then dropped on the chart. Drag any point to correct it.</p>
+    </div>
+    <div class="bearing">N 51°30&#39; LIBERTARIAN<br>S 51°30&#39; AUTHORITARIAN<br>W 000° LEFT — E 000° RIGHT</div>
+  </header>
+
+  <main>
+    <div class="chart-panel">
+      <svg id="chart" viewBox="0 0 640 640" role="img" aria-label="Political compass scatter chart"></svg>
+      <div class="empty-note" id="emptyNote">No points plotted yet.<br>Add a name to begin.</div>
+    </div>
+
+    <div class="panel">
+      <h2>Add a figure</h2>
+      <div class="add-row">
+        <input type="text" id="nameInput" placeholder="e.g. Willy Brandt, or Julia Gillard" />
+        <button class="primary" id="addBtn">Plot</button>
+      </div>
+      <p class="hint">Country is optional but helps disambiguate — try "Lula, Brazil". Estimates are Claude's best judgment, not settled fact; drag any dot to adjust it yourself.</p>
+      <div class="error" id="errorBox"></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2 style="font-size:15px;">Plotted (<span id="countLabel">0</span>)</h2>
+        <button class="clear-all" id="clearAllBtn">Clear all</button>
+      </div>
+      <div class="entries" id="entriesList"></div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'compass-entries-v1';
+let entries = [];
+let dragTarget = null;
+
+const PALETTE = ['#C9A227','#7896DC','#D8664A','#6FBF9A','#B57BDB','#E0A458','#5CA6B0','#C97CA6','#8FA34E','#D8887A'];
+function colorFor(country){
+  let h = 0;
+  for(let i=0;i<country.length;i++) h = (h*31 + country.charCodeAt(i)) >>> 0;
+  return PALETTE[h % PALETTE.length];
+}
+
+const svg = document.getElementById('chart');
+const cx = 320, cy = 320, scale = 25.5;
+
+function buildStaticChart(){
+  const ns = "http://www.w3.org/2000/svg";
+  svg.innerHTML = '';
+  // quadrant tints
+  const quads = [
+    [20,20,300,300,'var(--quad-tl)'],
+    [320,20,300,300,'var(--quad-tr)'],
+    [20,320,300,300,'var(--quad-bl)'],
+    [320,320,300,300,'var(--quad-br)']
+  ];
+  quads.forEach(q=>{
+    const r = document.createElementNS(ns,'rect');
+    r.setAttribute('x',q[0]);r.setAttribute('y',q[1]);
+    r.setAttribute('width',q[2]);r.setAttribute('height',q[3]);
+    r.setAttribute('fill',q[4]);
+    svg.appendChild(r);
+  });
+  // faint radial ticks (compass rose motif)
+  for(let deg=0; deg<360; deg+=15){
+    const rad = deg*Math.PI/180;
+    const isMajor = deg % 90 === 0;
+    const rOuter = isMajor ? 312 : 300;
+    const rInner = 296;
+    const x1 = cx + rInner*Math.cos(rad), y1 = cy + rInner*Math.sin(rad);
+    const x2 = cx + rOuter*Math.cos(rad), y2 = cy + rOuter*Math.sin(rad);
+    const line = document.createElementNS(ns,'line');
+    line.setAttribute('x1',x1);line.setAttribute('y1',y1);
+    line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+    line.setAttribute('stroke','var(--grid-strong)');
+    line.setAttribute('stroke-width', isMajor ? 1.4 : 0.7);
+    svg.appendChild(line);
+  }
+  // grid lines
+  for(let g=-10; g<=10; g+=2.5){
+    const gx = cx + g*scale, gy = cy - g*scale;
+    const vl = document.createElementNS(ns,'line');
+    vl.setAttribute('x1',gx);vl.setAttribute('y1',20);vl.setAttribute('x2',gx);vl.setAttribute('y2',620);
+    vl.setAttribute('stroke','var(--grid)');vl.setAttribute('stroke-width',0.5);
+    svg.appendChild(vl);
+    const hl = document.createElementNS(ns,'line');
+    hl.setAttribute('x1',20);hl.setAttribute('y1',gy);hl.setAttribute('x2',620);hl.setAttribute('y2',gy);
+    hl.setAttribute('stroke','var(--grid)');hl.setAttribute('stroke-width',0.5);
+    svg.appendChild(hl);
+  }
+  // main crosshair
+  [[cx,20,cx,620],[20,cy,620,cy]].forEach(c=>{
+    const line = document.createElementNS(ns,'line');
+    line.setAttribute('x1',c[0]);line.setAttribute('y1',c[1]);
+    line.setAttribute('x2',c[2]);line.setAttribute('y2',c[3]);
+    line.setAttribute('stroke','var(--grid-strong)');line.setAttribute('stroke-width',1.2);
+    svg.appendChild(line);
+  });
+  const labels = [
+    [320,12,'LIBERTARIAN','middle'],
+    [320,634,'AUTHORITARIAN','middle'],
+    [16,330,'LEFT','start'],
+    [624,330,'RIGHT','end']
+  ];
+  labels.forEach(l=>{
+    const t = document.createElementNS(ns,'text');
+    t.setAttribute('x',l[0]);t.setAttribute('y',l[1]);
+    t.setAttribute('text-anchor',l[3]==='middle'?'middle':(l[3]==='start'?'start':'end'));
+    t.setAttribute('class','axis-label');
+    t.textContent = l[2];
+    svg.appendChild(t);
+  });
+  const g = document.createElementNS(ns,'g');
+  g.setAttribute('id','pointsGroup');
+  svg.appendChild(g);
+}
+
+function renderPoints(){
+  const ns = "http://www.w3.org/2000/svg";
+  const g = document.getElementById('pointsGroup');
+  g.innerHTML = '';
+  document.getElementById('emptyNote').style.display = entries.length ? 'none' : 'block';
+  entries.forEach((e,i)=>{
+    const x = cx + e.x*scale, y = cy - e.y*scale;
+    const color = colorFor(e.country || 'Unknown');
+    const circle = document.createElementNS(ns,'circle');
+    circle.setAttribute('cx',x);circle.setAttribute('cy',y);circle.setAttribute('r',11);
+    circle.setAttribute('fill',color);
+    circle.setAttribute('stroke','#0F1520');circle.setAttribute('stroke-width',1.5);
+    circle.style.cursor = 'grab';
+    circle.addEventListener('pointerdown', (ev)=>startDrag(ev, i));
+    g.appendChild(circle);
+    const text = document.createElementNS(ns,'text');
+    text.setAttribute('x',x);text.setAttribute('y',y+3.5);
+    text.setAttribute('text-anchor','middle');text.setAttribute('font-size','10');
+    text.setAttribute('font-family','JetBrains Mono, monospace');
+    text.setAttribute('fill','#161E2B');text.setAttribute('font-weight','600');
+    text.setAttribute('pointer-events','none');
+    text.textContent = i+1;
+    g.appendChild(text);
+  });
+}
+
+function startDrag(ev, index){
+  dragTarget = index;
+  ev.target.setPointerCapture(ev.pointerId);
+  ev.target.style.cursor = 'grabbing';
+}
+svg.addEventListener('pointermove', (ev)=>{
+  if(dragTarget===null) return;
+  const rect = svg.getBoundingClientRect();
+  const scaleFactor = 640/rect.width;
+  const px = (ev.clientX-rect.left)*scaleFactor;
+  const py = (ev.clientY-rect.top)*scaleFactor;
+  let nx = (px-cx)/scale, ny = (cy-py)/scale;
+  nx = Math.max(-10,Math.min(10,nx));
+  ny = Math.max(-10,Math.min(10,ny));
+  entries[dragTarget].x = Math.round(nx*10)/10;
+  entries[dragTarget].y = Math.round(ny*10)/10;
+  renderPoints();
+});
+window.addEventListener('pointerup', ()=>{
+  if(dragTarget!==null){
+    dragTarget = null;
+    save();
+  }
+});
+
+function renderList(){
+  const list = document.getElementById('entriesList');
+  document.getElementById('countLabel').textContent = entries.length;
+  list.innerHTML = '';
+  if(!entries.length){
+    list.innerHTML = '<div class="empty-list">Nothing plotted yet.</div>';
+    return;
+  }
+  entries.forEach((e,i)=>{
+    const row = document.createElement('div');
+    row.className = 'entry';
+    const color = colorFor(e.country || 'Unknown');
+    row.innerHTML = `
+      <div class="dot" style="background:${color}"></div>
+      <div class="entry-body">
+        <div class="entry-name">${i+1}. ${escapeHtml(e.name)}</div>
+        <div class="entry-meta">${escapeHtml(e.country||'')} · ${escapeHtml(e.dates||'')}</div>
+        <div class="entry-blurb">${escapeHtml(e.blurb||'')}</div>
+      </div>
+      <button class="entry-remove" data-i="${i}" aria-label="Remove">&times;</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.entry-remove').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      entries.splice(parseInt(btn.dataset.i),1);
+      renderAll();
+      save();
+    });
+  });
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+function renderAll(){
+  renderPoints();
+  renderList();
+}
+
+function save(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  }catch(err){
+    console.error('Save failed', err);
+  }
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) entries = JSON.parse(raw);
+  }catch(err){
+    entries = [];
+  }
+  renderAll();
+}
+
+function showError(msg){
+  const box = document.getElementById('errorBox');
+  box.textContent = msg;
+  box.style.display = 'block';
+}
+function clearError(){
+  document.getElementById('errorBox').style.display = 'none';
+}
+
+async function plotName(){
+  const input = document.getElementById('nameInput');
+  const name = input.value.trim();
+  if(!name) return;
+  clearError();
+  const btn = document.getElementById('addBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Placing…';
+
+  try{
+    const response = await fetch("/api/place", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ name })
+    });
+    const parsed = await response.json();
+    if(!response.ok){
+      throw new Error(parsed && parsed.error ? parsed.error : ('HTTP '+response.status));
+    }
+    if(typeof parsed.x !== 'number' || typeof parsed.y !== 'number') throw new Error('Server reply missing numeric x/y: '+JSON.stringify(parsed).slice(0,150));
+    entries.push({
+      name: parsed.name || name,
+      country: parsed.country || '',
+      dates: parsed.dates || '',
+      x: Math.max(-10,Math.min(10,parsed.x)),
+      y: Math.max(-10,Math.min(10,parsed.y)),
+      blurb: parsed.blurb || ''
+    });
+    input.value = '';
+    renderAll();
+    save();
+  }catch(err){
+    console.error(err);
+    showError("Couldn't place that figure — " + (err && err.message ? err.message : "unknown error") + ". Try a different spelling, or add a country for clarity.");
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Plot';
+  }
+}
+
+document.getElementById('addBtn').addEventListener('click', plotName);
+document.getElementById('nameInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') plotName();
+});
+document.getElementById('clearAllBtn').addEventListener('click', ()=>{
+  entries = [];
+  renderAll();
+  save();
+});
+
+buildStaticChart();
+load();
+</script>
+</body>
+</html>
