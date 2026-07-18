@@ -100,8 +100,7 @@ const POLITICIANS = [
   {name:"Javier Milei", country:"Argentina", dates:"2023–present", x:9, y:0, blurb:"Libertarian free-market radical, minimal-state agenda.", aliases:["milei","javier milei"]},
   {name:"Cyril Ramaphosa", country:"South Africa", dates:"2018–present", x:-3, y:3, blurb:"Center-left ANC, democratic governance.", aliases:["ramaphosa","cyril ramaphosa"]},
   {name:"Anthony Albanese", country:"Australia", dates:"2022–present", x:-3, y:4, blurb:"Center-left Labor, standard democratic governance.", aliases:["albanese","anthony albanese"]},
-  {name:"Benjamin Netanyahu", country:"Israel", dates:"1996–1999, 2009–present", x:6, y:-3, blurb:"Right-leaning market reforms, judicial-overhaul controversy.", aliases:["netanyahu","bibi","benjamin netanyahu"]}
-];
+ {name:"Benjamin Netanyahu", country:"Israel", dates:"1996–1999, 2009–present", x:6, y:-3, blurb:"Right-leaning market reforms, judicial-overhaul controversy.", aliases:["netanyahu","bibi","benjamin netanyahu"]},
 
 // --- Asia ---
   {name:"Shinzo Abe", country:"Japan", dates:"2006–2007, 2012–2020", x:5, y:1, blurb:"Conservative LDP, market reforms (\"Abenomics\").", aliases:["abe","shinzo abe"]},
@@ -211,3 +210,4 @@ const POLITICIANS = [
   {name:"Christopher Luxon", country:"New Zealand", dates:"2023–present", x:4, y:2, blurb:"Center-right, business background.", aliases:["luxon","christopher luxon"]},
   {name:"Robert Menzies", country:"Australia", dates:"1949–1966", x:4, y:1, blurb:"Longest-serving PM, center-right.", aliases:["robert menzies","menzies"]},
   {name:"Helen Clark", country:"New Zealand", dates:"1999–2008", x:-4, y:4, blurb:"Center-left Labour.", aliases:["helen clark"]}
+];
